@@ -91,7 +91,7 @@
 
     .choice {
       position: relative;
-      min-height: 310px;
+      min-height: 260px;
       padding: 0;
       border: 1px solid rgba(73, 109, 85, .22);
       border-radius: 8px;
@@ -102,6 +102,8 @@
       overflow: hidden;
       cursor: pointer;
       touch-action: manipulation;
+      display: grid;
+      grid-template-rows: 1fr auto;
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
@@ -132,21 +134,27 @@
     }
 
     .art {
-      height: 168px;
+      min-height: 210px;
       display: grid;
       place-items: center;
       background: linear-gradient(180deg, rgba(141, 182, 189, .26), rgba(255, 255, 255, 0));
-      border-bottom: 1px solid rgba(216, 221, 215, .8);
     }
 
     .art svg {
-      width: min(76%, 210px);
-      height: 126px;
+      width: min(78%, 220px);
+      height: 148px;
       display: block;
     }
 
     .copy {
+      display: none;
       padding: 20px 18px 18px;
+      border-top: 1px solid rgba(216, 221, 215, .8);
+      background: rgba(255, 255, 255, .58);
+    }
+
+    .choice[aria-pressed="true"] .copy {
+      display: block;
     }
 
     .copy h2 {
@@ -332,21 +340,18 @@
       }
 
       .choice {
-        min-height: 0;
-        display: grid;
-        grid-template-columns: 112px 1fr;
+        min-height: 142px;
+        grid-template-columns: 1fr;
       }
 
       .art {
-        height: 100%;
+        height: auto;
         min-height: 132px;
-        border-bottom: 0;
-        border-right: 1px solid rgba(216, 221, 215, .8);
       }
 
       .art svg {
-        width: 88px;
-        height: 88px;
+        width: 116px;
+        height: 100px;
       }
 
       .copy {
@@ -389,11 +394,11 @@
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow">Gutschein</p>
       <h1 id="page-title">Ein Morgen am Wasser und in den Bergen</h1>
-      <p class="intro">W&auml;hle eines von drei Erlebnissen. Tippe auf eine Karte, lies die Details und best&auml;tige danach deine Auswahl.</p>
+      <p class="intro">W&auml;hle eines der drei Symbole. Erst nach deiner Best&auml;tigung wird aufgedeckt, welches Erlebnis dahintersteckt.</p>
     </section>
 
     <section class="choices" aria-label="Erlebnisse">
-      <button class="choice" type="button" data-id="ship" aria-pressed="false">
+      <button class="choice" type="button" data-id="ship" aria-label="Symbol 1 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140" role="img">
             <path d="M22 99c21 9 38 9 58 0s38-9 59 0 38 9 59 0" fill="none" stroke="#8db6bd" stroke-width="7" stroke-linecap="round"/>
@@ -409,7 +414,7 @@
         </span>
       </button>
 
-      <button class="choice" type="button" data-id="gondola" aria-pressed="false">
+      <button class="choice" type="button" data-id="gondola" aria-label="Symbol 2 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140" role="img">
             <path d="M20 30h180" stroke="#496d55" stroke-width="5" stroke-linecap="round"/>
@@ -426,7 +431,7 @@
         </span>
       </button>
 
-      <button class="choice" type="button" data-id="mountain" aria-pressed="false">
+      <button class="choice" type="button" data-id="mountain" aria-label="Symbol 3 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140" role="img">
             <path d="M23 116l43-57 28 32 34-49 68 74z" fill="#eef2ee" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
@@ -444,7 +449,7 @@
     </section>
 
     <section class="status" id="status" aria-live="polite">
-      <span>Noch nichts ausgew&auml;hlt. &Ouml;ffne eine Karte und best&auml;tige dein Lieblings-Erlebnis.</span>
+      <span>Noch nichts ausgew&auml;hlt. Tippe auf ein Symbol und best&auml;tige deine Wahl.</span>
       <button type="button" id="changeSelection">Auswahl &auml;ndern</button>
     </section>
   </main>
@@ -459,8 +464,8 @@
         <p id="modalText"></p>
         <ul class="details" id="modalDetails"></ul>
         <div class="modal-actions">
-          <button type="button" id="selectOption">Dieses Erlebnis ausw&auml;hlen</button>
-          <button type="button" class="secondary" id="keepLooking">Weiter schauen</button>
+          <button type="button" id="selectOption">Symbol best&auml;tigen</button>
+          <button type="button" class="secondary" id="keepLooking">Anderes Symbol ansehen</button>
         </div>
       </div>
     </section>
@@ -497,6 +502,7 @@
     const changeButton = document.querySelector('#changeSelection');
 
     let activeId = null;
+    let modalState = 'confirm';
     let selectedId = localStorage.getItem('voucherChoice');
 
     function renderSelection() {
@@ -506,17 +512,30 @@
 
       if (!selectedId) {
         statusBox.classList.remove('has-selection');
-        statusBox.querySelector('span').innerHTML = 'Noch nichts ausgew&auml;hlt. &Ouml;ffne eine Karte und best&auml;tige dein Lieblings-Erlebnis.';
+        statusBox.querySelector('span').innerHTML = 'Noch nichts ausgew&auml;hlt. Tippe auf ein Symbol und best&auml;tige deine Wahl.';
         return;
       }
 
       statusBox.classList.add('has-selection');
-      statusBox.querySelector('span').innerHTML = `Ausgew&auml;hlt: <strong>${options[selectedId].title}</strong>. Der Gutschein ist bereit.`;
+      statusBox.querySelector('span').innerHTML = `Aufgedeckt: <strong>${options[selectedId].title}</strong>. Du kannst die Auswahl weiterhin &auml;ndern.`;
     }
 
     function openModal(id) {
       activeId = id;
-      const option = options[id];
+      modalState = 'confirm';
+      modalTitle.textContent = 'Dieses Symbol w\u00e4hlen?';
+      modalText.textContent = 'Wenn du best\u00e4tigst, wird aufgedeckt, welches Erlebnis hinter diesem Symbol steckt.';
+      modalDetails.replaceChildren();
+      selectButton.textContent = 'Symbol best\u00e4tigen';
+      keepLookingButton.textContent = 'Anderes Symbol ansehen';
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      closeButton.focus();
+    }
+
+    function revealActive() {
+      const option = options[activeId];
+      modalState = 'result';
       modalTitle.textContent = option.title;
       modalText.textContent = option.text;
       modalDetails.replaceChildren(...option.details.map((detail) => {
@@ -524,9 +543,8 @@
         item.textContent = detail;
         return item;
       }));
-      backdrop.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      closeButton.focus();
+      selectButton.textContent = 'Schliessen';
+      keepLookingButton.textContent = 'Auswahl \u00e4ndern';
     }
 
     function closeModal() {
@@ -537,10 +555,32 @@
     }
 
     function selectActive() {
+      if (modalState === 'result') {
+        closeModal();
+        return;
+      }
+
       if (!activeId) return;
       selectedId = activeId;
       localStorage.setItem('voucherChoice', selectedId);
       renderSelection();
+      revealActive();
+    }
+
+    function clearSelection() {
+      selectedId = null;
+      localStorage.removeItem('voucherChoice');
+      renderSelection();
+      closeModal();
+      cards[0].focus();
+    }
+
+    function handleSecondaryAction() {
+      if (modalState === 'result') {
+        clearSelection();
+        return;
+      }
+
       closeModal();
     }
 
@@ -550,17 +590,14 @@
 
     selectButton.addEventListener('click', selectActive);
     closeButton.addEventListener('click', closeModal);
-    keepLookingButton.addEventListener('click', closeModal);
+    keepLookingButton.addEventListener('click', handleSecondaryAction);
 
     backdrop.addEventListener('click', (event) => {
       if (event.target === backdrop) closeModal();
     });
 
     changeButton.addEventListener('click', () => {
-      selectedId = null;
-      localStorage.removeItem('voucherChoice');
-      renderSelection();
-      cards[0].focus();
+      clearSelection();
     });
 
     document.addEventListener('keydown', (event) => {
