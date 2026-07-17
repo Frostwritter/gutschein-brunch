@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gutschein Auswahl</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #25302b;
+      --muted: #68736d;
+      --line: #d8ddd7;
+      --paper: #faf7f0;
+      --surface: #ffffff;
+      --lake: #8db6bd;
+      --forest: #496d55;
+      --sun: #d8a84e;
+      --clay: #b27457;
+      --shadow: 0 18px 45px rgba(37, 48, 43, .15);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(141, 182, 189, .32), transparent 34rem),
+        linear-gradient(145deg, #fbf8f1 0%, #eef4ef 58%, #f7efe8 100%);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 980px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 28px 18px 24px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 22px;
+    }
+
+    .hero {
+      padding-top: max(14px, env(safe-area-inset-top));
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--forest);
+      font-size: .82rem;
+      font-weight: 760;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.25rem, 8vw, 5.1rem);
+      line-height: .96;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .intro {
+      max-width: 610px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.55;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-content: center;
+    }
+
+    .choice {
+      position: relative;
+      min-height: 310px;
+      padding: 0;
+      border: 1px solid rgba(73, 109, 85, .22);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .72);
+      color: inherit;
+      text-align: left;
+      box-shadow: 0 10px 28px rgba(37, 48, 43, .08);
+      overflow: hidden;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .choice:hover,
+    .choice:focus-visible {
+      border-color: rgba(73, 109, 85, .48);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .choice[aria-pressed="true"] {
+      border-color: var(--forest);
+      background: #fffdf8;
+    }
+
+    .choice[aria-pressed="true"]::after {
+      content: "Ausgew\00E4 hlt";
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--forest);
+      color: #fff;
+      font-size: .76rem;
+      font-weight: 760;
+    }
+
+    .art {
+      height: 168px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(141, 182, 189, .26), rgba(255, 255, 255, 0));
+      border-bottom: 1px solid rgba(216, 221, 215, .8);
+    }
+
+    .art svg {
+      width: min(76%, 210px);
+      height: 126px;
+      display: block;
+    }
+
+    .copy {
+      padding: 20px 18px 18px;
+    }
+
+    .copy h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .copy p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.46;
+      font-size: .96rem;
+    }
+
+    .status {
+      min-height: 68px;
+      padding: 16px 18px;
+      border: 1px solid rgba(73, 109, 85, .18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .64);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .status span {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .status strong {
+      color: var(--ink);
+    }
+
+    .status button,
+    .modal-actions button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 16px;
+      background: var(--forest);
+      color: #fff;
+      font-weight: 760;
+      cursor: pointer;
+    }
+
+    .status button {
+      display: none;
+      white-space: nowrap;
+    }
+
+    .status.has-selection button {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: end;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(31, 40, 36, .42);
+      z-index: 10;
+    }
+
+    .backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(100%, 520px);
+      max-height: min(86vh, 660px);
+      overflow: auto;
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      transform: translateY(6px);
+      animation: rise .16s ease forwards;
+    }
+
+    @keyframes rise {
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      min-height: 160px;
+      padding: 18px;
+      background: linear-gradient(135deg, rgba(141, 182, 189, .26), rgba(216, 168, 78, .18));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2rem;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .close {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(37, 48, 43, .16);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .72);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .modal-body {
+      padding: 20px 18px 18px;
+    }
+
+    .modal-body p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .details {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .details li {
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.42;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .modal-actions .secondary {
+      background: #eef2ee;
+      color: var(--forest);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        padding: 22px 14px 18px;
+        gap: 18px;
+      }
+
+      .choices {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        align-content: start;
+      }
+
+      .choice {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 112px 1fr;
+      }
+
+      .art {
+        height: 100%;
+        min-height: 132px;
+        border-bottom: 0;
+        border-right: 1px solid rgba(216, 221, 215, .8);
+      }
+
+      .art svg {
+        width: 88px;
+        height: 88px;
+      }
+
+      .copy {
+        padding: 18px 14px;
+      }
+
+      .copy h2 {
+        font-size: 1.28rem;
+      }
+
+      .copy p {
+        font-size: .92rem;
+      }
+
+      .choice[aria-pressed="true"]::after {
+        top: 8px;
+        right: 8px;
+      }
+
+      .status {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .status button {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+
+    @media (min-width: 620px) {
+      .backdrop {
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Gutschein</p>
+      <h1 id="page-title">Ein Morgen am Wasser und in den Bergen</h1>
+      <p class="intro">W&auml;hle eines von drei Erlebnissen. Tippe auf eine Karte, lies die Details und best&auml;tige danach deine Auswahl.</p>
+    </section>
+
+    <section class="choices" aria-label="Erlebnisse">
+      <button class="choice" type="button" data-id="ship" aria-pressed="false">
+        <span class="art" aria-hidden="true">
+          <svg viewBox="0 0 220 140" role="img">
+            <path d="M22 99c21 9 38 9 58 0s38-9 59 0 38 9 59 0" fill="none" stroke="#8db6bd" stroke-width="7" stroke-linecap="round"/>
+            <path d="M42 68h120l-18 38H67z" fill="#f8faf7" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M74 39h65l16 29H58z" fill="#fff" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M88 52h15m19 0h15" stroke="#8db6bd" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="166" cy="42" r="11" fill="#d8a84e"/>
+          </svg>
+        </span>
+        <span class="copy">
+          <h2>Brunch-Schiff</h2>
+          <p>Gem&uuml;tlich &uuml;ber den See gleiten, draussen schauen und drinnen geniessen.</p>
+        </span>
+      </button>
+
+      <button class="choice" type="button" data-id="gondola" aria-pressed="false">
+        <span class="art" aria-hidden="true">
+          <svg viewBox="0 0 220 140" role="img">
+            <path d="M20 30h180" stroke="#496d55" stroke-width="5" stroke-linecap="round"/>
+            <path d="M111 30v24" stroke="#496d55" stroke-width="5" stroke-linecap="round"/>
+            <rect x="63" y="54" width="96" height="58" rx="8" fill="#fff" stroke="#496d55" stroke-width="5"/>
+            <path d="M80 72h62M84 91h54" stroke="#8db6bd" stroke-width="6" stroke-linecap="round"/>
+            <path d="M42 117l35-36 25 24 25-32 50 44z" fill="#eef2ee" stroke="#496d55" stroke-width="4" stroke-linejoin="round"/>
+            <circle cx="182" cy="50" r="10" fill="#d8a84e"/>
+          </svg>
+        </span>
+        <span class="copy">
+          <h2>Zmorge-Gondel</h2>
+          <p>Ein kleines Fr&uuml;hst&uuml;ck in der Gondel mit Aussicht schon auf dem Weg nach oben.</p>
+        </span>
+      </button>
+
+      <button class="choice" type="button" data-id="mountain" aria-pressed="false">
+        <span class="art" aria-hidden="true">
+          <svg viewBox="0 0 220 140" role="img">
+            <path d="M23 116l43-57 28 32 34-49 68 74z" fill="#eef2ee" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M128 42l14 24 10-10 15 60" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M72 82h58v35H72z" fill="#fff" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M66 82l35-25 35 25" fill="#b27457" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M92 117V96h18v21" fill="#f7efe8" stroke="#496d55" stroke-width="4"/>
+          </svg>
+        </span>
+        <span class="copy">
+          <h2>Berg-Brunch</h2>
+          <p>Oben ankommen, Zeit lassen und den Brunch mit Bergblick auskosten.</p>
+        </span>
+      </button>
+    </section>
+
+    <section class="status" id="status" aria-live="polite">
+      <span>Noch nichts ausgew&auml;hlt. &Ouml;ffne eine Karte und best&auml;tige dein Lieblings-Erlebnis.</span>
+      <button type="button" id="changeSelection">Auswahl &auml;ndern</button>
+    </section>
+  </main>
+
+  <div class="backdrop" id="backdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
+      <div class="modal-header">
+        <h3 id="modalTitle"></h3>
+        <button class="close" type="button" id="closeModal" aria-label="Fenster schliessen">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modalText"></p>
+        <ul class="details" id="modalDetails"></ul>
+        <div class="modal-actions">
+          <button type="button" id="selectOption">Dieses Erlebnis ausw&auml;hlen</button>
+          <button type="button" class="secondary" id="keepLooking">Weiter schauen</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const options = {
+      ship: {
+        title: 'Brunch-Schiff',
+        text: 'Ein ruhiger Start in den Tag auf dem See: reservierter Platz, feiner Brunch und genug Zeit, um die Aussicht zu geniessen.',
+        details: ['Dauer: ca. 2 bis 3 Stunden', 'Ideal bei sonnigem Wetter und ruhiger Stimmung', 'Inklusive Brunch an Bord und gemeinsamer Zeit am Wasser']
+      },
+      gondola: {
+        title: 'Zmorge-Gondel',
+        text: 'Ein besonderes Zmorge in der Gondel, w\u00e4hrend die Landschaft langsam unter euch kleiner wird.',
+        details: ['Dauer: je nach Bahn ca. 60 bis 90 Minuten', 'Gemacht f\u00fcr Aussicht, Kaffee und einen ungew\u00f6hnlichen Start', 'Inklusive Gondelfahrt und Fr\u00fchst\u00fccksbox']
+      },
+      mountain: {
+        title: 'Berg-Brunch',
+        text: 'Ein entspannter Brunch im Bergrestaurant mit Blick in die Gipfel und Zeit fuer einen kleinen Spaziergang danach.',
+        details: ['Dauer: offen und gem\u00fctlich planbar', 'Ideal f\u00fcr Bergluft, Aussicht und einen langen Vormittag', 'Inklusive Brunch im Restaurant und gemeinsamer Anreise']
+      }
+    };
+
+    const cards = [...document.querySelectorAll('.choice')];
+    const backdrop = document.querySelector('#backdrop');
+    const modalTitle = document.querySelector('#modalTitle');
+    const modalText = document.querySelector('#modalText');
+    const modalDetails = document.querySelector('#modalDetails');
+    const selectButton = document.querySelector('#selectOption');
+    const closeButton = document.querySelector('#closeModal');
+    const keepLookingButton = document.querySelector('#keepLooking');
+    const statusBox = document.querySelector('#status');
+    const changeButton = document.querySelector('#changeSelection');
+
+    let activeId = null;
+    let selectedId = localStorage.getItem('voucherChoice');
+
+    function renderSelection() {
+      cards.forEach((card) => {
+        card.setAttribute('aria-pressed', String(card.dataset.id === selectedId));
+      });
+
+      if (!selectedId) {
+        statusBox.classList.remove('has-selection');
+        statusBox.querySelector('span').innerHTML = 'Noch nichts ausgew&auml;hlt. &Ouml;ffne eine Karte und best&auml;tige dein Lieblings-Erlebnis.';
+        return;
+      }
+
+      statusBox.classList.add('has-selection');
+      statusBox.querySelector('span').innerHTML = `Ausgew&auml;hlt: <strong>${options[selectedId].title}</strong>. Der Gutschein ist bereit.`;
+    }
+
+    function openModal(id) {
+      activeId = id;
+      const option = options[id];
+      modalTitle.textContent = option.title;
+      modalText.textContent = option.text;
+      modalDetails.replaceChildren(...option.details.map((detail) => {
+        const item = document.createElement('li');
+        item.textContent = detail;
+        return item;
+      }));
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      closeButton.focus();
+    }
+
+    function closeModal() {
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+      const activeCard = cards.find((card) => card.dataset.id === activeId);
+      activeCard?.focus();
+    }
+
+    function selectActive() {
+      if (!activeId) return;
+      selectedId = activeId;
+      localStorage.setItem('voucherChoice', selectedId);
+      renderSelection();
+      closeModal();
+    }
+
+    cards.forEach((card) => {
+      card.addEventListener('click', () => openModal(card.dataset.id));
+    });
+
+    selectButton.addEventListener('click', selectActive);
+    closeButton.addEventListener('click', closeModal);
+    keepLookingButton.addEventListener('click', closeModal);
+
+    backdrop.addEventListener('click', (event) => {
+      if (event.target === backdrop) closeModal();
+    });
+
+    changeButton.addEventListener('click', () => {
+      selectedId = null;
+      localStorage.removeItem('voucherChoice');
+      renderSelection();
+      cards[0].focus();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && backdrop.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    renderSelection();
+  </script>
+</body>
+</html>
