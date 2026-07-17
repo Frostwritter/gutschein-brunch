@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gutschein Auswahl</title>
+  <title>Erlebnis-Auswahl</title>
   <style>
     :root {
       color-scheme: light;
@@ -26,9 +26,7 @@
 
     html {
       min-height: 100%;
-      background:
-        radial-gradient(circle at top left, rgba(141, 182, 189, .32), transparent 34rem),
-        linear-gradient(145deg, #fbf8f1 0%, #eef4ef 58%, #f7efe8 100%);
+      background: linear-gradient(145deg, #fbf8f1 0%, #eef4ef 58%, #f7efe8 100%);
     }
 
     body {
@@ -42,68 +40,38 @@
     }
 
     .app {
-      width: min(100%, 980px);
+      width: min(100%, 1120px);
       min-height: 100vh;
       margin: 0 auto;
-      padding: 28px 18px 24px;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
       display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 22px;
-    }
-
-    .hero {
-      padding-top: max(14px, env(safe-area-inset-top));
-    }
-
-    .eyebrow {
-      margin: 0 0 10px;
-      color: var(--forest);
-      font-size: .82rem;
-      font-weight: 760;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      max-width: 720px;
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(2.25rem, 8vw, 5.1rem);
-      line-height: .96;
-      letter-spacing: 0;
-      font-weight: 500;
-    }
-
-    .intro {
-      max-width: 610px;
-      margin: 18px 0 0;
-      color: var(--muted);
-      font-size: 1.02rem;
-      line-height: 1.55;
+      grid-template-rows: 1fr auto;
+      gap: 16px;
     }
 
     .choices {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
       align-content: center;
+      align-items: center;
+      min-height: 0;
     }
 
     .choice {
       position: relative;
-      min-height: 260px;
+      min-height: 142px;
       padding: 0;
       border: 1px solid rgba(73, 109, 85, .22);
       border-radius: 8px;
-      background: rgba(255, 255, 255, .72);
-      color: inherit;
-      text-align: left;
+      background: rgba(255, 255, 255, .68);
+      color: var(--forest);
       box-shadow: 0 10px 28px rgba(37, 48, 43, .08);
       overflow: hidden;
       cursor: pointer;
       touch-action: manipulation;
       display: grid;
-      grid-template-rows: 1fr auto;
+      place-items: center;
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
@@ -117,7 +85,7 @@
 
     .choice[aria-pressed="true"] {
       border-color: var(--forest);
-      background: #fffdf8;
+      background: rgba(255, 253, 248, .92);
     }
 
     .choice[aria-pressed="true"]::after {
@@ -134,47 +102,22 @@
     }
 
     .art {
-      min-height: 210px;
+      width: 100%;
+      min-height: 140px;
       display: grid;
       place-items: center;
-      background: linear-gradient(180deg, rgba(141, 182, 189, .26), rgba(255, 255, 255, 0));
+      color: var(--forest);
     }
 
     .art svg {
-      width: min(78%, 220px);
-      height: 148px;
+      width: min(58vw, 190px);
+      height: 110px;
       display: block;
-    }
-
-    .copy {
-      display: none;
-      padding: 20px 18px 18px;
-      border-top: 1px solid rgba(216, 221, 215, .8);
-      background: rgba(255, 255, 255, .58);
-    }
-
-    .choice[aria-pressed="true"] .copy {
-      display: block;
-    }
-
-    .copy h2 {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 1.45rem;
-      font-weight: 500;
-      letter-spacing: 0;
-    }
-
-    .copy p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.46;
-      font-size: .96rem;
     }
 
     .status {
-      min-height: 68px;
-      padding: 16px 18px;
+      min-height: 58px;
+      padding: 12px 14px;
       border: 1px solid rgba(73, 109, 85, .18);
       border-radius: 8px;
       background: rgba(255, 255, 255, .64);
@@ -184,9 +127,39 @@
       gap: 16px;
     }
 
+    .connector {
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      color: rgba(73, 109, 85, .58);
+    }
+
+    .connector svg {
+      width: 56px;
+      height: 44px;
+      display: block;
+    }
+
+    .icon-stroke {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .icon-soft {
+      fill: none;
+      stroke: var(--lake);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     .status span {
       color: var(--muted);
       line-height: 1.45;
+      font-size: .94rem;
     }
 
     .status strong {
@@ -327,58 +300,68 @@
       border: 0;
     }
 
-    @media (max-width: 760px) {
-      .app {
-        padding: 22px 14px 18px;
-        gap: 18px;
-      }
-
+    @media (min-width: 760px), (orientation: landscape) {
       .choices {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(150px, 1fr) minmax(52px, 90px) minmax(150px, 1fr) minmax(52px, 90px) minmax(150px, 1fr);
         gap: 12px;
-        align-content: start;
       }
 
       .choice {
-        min-height: 142px;
-        grid-template-columns: 1fr;
+        min-height: clamp(150px, 42vh, 300px);
       }
 
       .art {
-        height: auto;
-        min-height: 132px;
+        min-height: clamp(150px, 42vh, 300px);
       }
 
       .art svg {
-        width: 116px;
-        height: 100px;
+        width: min(18vw, 210px);
+        height: min(22vh, 150px);
       }
 
-      .copy {
-        padding: 18px 14px;
+      .connector {
+        min-height: 1px;
       }
 
-      .copy h2 {
-        font-size: 1.28rem;
+      .connector svg {
+        width: min(8vw, 80px);
+        height: 52px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .app {
+        padding: 10px 12px;
+        gap: 10px;
       }
 
-      .copy p {
-        font-size: .92rem;
+      .choice {
+        min-height: clamp(122px, 58vh, 210px);
       }
 
-      .choice[aria-pressed="true"]::after {
-        top: 8px;
-        right: 8px;
+      .art {
+        min-height: clamp(122px, 58vh, 210px);
       }
 
       .status {
-        align-items: stretch;
-        flex-direction: column;
+        min-height: 48px;
+        padding: 10px 12px;
+      }
+    }
+
+    @media (max-width: 640px) and (orientation: portrait) {
+      .connector svg {
+        transform: rotate(90deg);
       }
 
       .status button {
         justify-content: center;
         width: 100%;
+      }
+
+      .status {
+        align-items: stretch;
+        flex-direction: column;
       }
     }
 
@@ -391,65 +374,60 @@
 </head>
 <body>
   <main class="app">
-    <section class="hero" aria-labelledby="page-title">
-      <p class="eyebrow">Gutschein</p>
-      <h1 id="page-title">Ein Morgen am Wasser und in den Bergen</h1>
-      <p class="intro">W&auml;hle eines der drei Symbole. Erst nach deiner Best&auml;tigung wird aufgedeckt, welches Erlebnis dahintersteckt.</p>
-    </section>
-
-    <section class="choices" aria-label="Erlebnisse">
+    <section class="choices" aria-label="Verdeckte Erlebnis-Auswahl">
       <button class="choice" type="button" data-id="ship" aria-label="Symbol 1 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
-          <svg viewBox="0 0 220 140" role="img">
-            <path d="M22 99c21 9 38 9 58 0s38-9 59 0 38 9 59 0" fill="none" stroke="#8db6bd" stroke-width="7" stroke-linecap="round"/>
-            <path d="M42 68h120l-18 38H67z" fill="#f8faf7" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
-            <path d="M74 39h65l16 29H58z" fill="#fff" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
-            <path d="M88 52h15m19 0h15" stroke="#8db6bd" stroke-width="6" stroke-linecap="round"/>
-            <circle cx="166" cy="42" r="11" fill="#d8a84e"/>
+          <svg viewBox="0 0 220 140">
+            <path class="icon-soft" d="M26 104c18 8 34 8 52 0s34-8 52 0 34 8 52 0"/>
+            <path class="icon-stroke" d="M54 73h112l-18 31H76z"/>
+            <path class="icon-stroke" d="M78 49h58l19 24H64z"/>
+            <path class="icon-soft" d="M91 61h12m21 0h12"/>
+            <path class="icon-stroke" d="M109 30v19"/>
           </svg>
         </span>
-        <span class="copy">
-          <h2>Brunch-Schiff</h2>
-          <p>Gem&uuml;tlich &uuml;ber den See gleiten, draussen schauen und drinnen geniessen.</p>
-        </span>
       </button>
+
+      <span class="connector" aria-hidden="true">
+        <svg viewBox="0 0 80 44">
+          <path class="icon-soft" d="M9 24h50"/>
+          <path class="icon-soft" d="M49 14l11 10-11 10"/>
+        </svg>
+      </span>
 
       <button class="choice" type="button" data-id="gondola" aria-label="Symbol 2 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
-          <svg viewBox="0 0 220 140" role="img">
-            <path d="M20 30h180" stroke="#496d55" stroke-width="5" stroke-linecap="round"/>
-            <path d="M111 30v24" stroke="#496d55" stroke-width="5" stroke-linecap="round"/>
-            <rect x="63" y="54" width="96" height="58" rx="8" fill="#fff" stroke="#496d55" stroke-width="5"/>
-            <path d="M80 72h62M84 91h54" stroke="#8db6bd" stroke-width="6" stroke-linecap="round"/>
-            <path d="M42 117l35-36 25 24 25-32 50 44z" fill="#eef2ee" stroke="#496d55" stroke-width="4" stroke-linejoin="round"/>
-            <circle cx="182" cy="50" r="10" fill="#d8a84e"/>
+          <svg viewBox="0 0 220 140">
+            <path class="icon-stroke" d="M30 34h160"/>
+            <path class="icon-stroke" d="M110 34v25"/>
+            <rect x="66" y="58" width="88" height="56" rx="10" class="icon-stroke"/>
+            <path class="icon-soft" d="M83 78h54M86 95h48"/>
+            <path class="icon-soft" d="M50 119l31-34 24 26 29-42 37 50"/>
           </svg>
-        </span>
-        <span class="copy">
-          <h2>Zmorge-Gondel</h2>
-          <p>Ein kleines Fr&uuml;hst&uuml;ck in der Gondel mit Aussicht schon auf dem Weg nach oben.</p>
         </span>
       </button>
 
+      <span class="connector" aria-hidden="true">
+        <svg viewBox="0 0 80 44">
+          <path class="icon-soft" d="M9 24h50"/>
+          <path class="icon-soft" d="M49 14l11 10-11 10"/>
+        </svg>
+      </span>
+
       <button class="choice" type="button" data-id="mountain" aria-label="Symbol 3 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
-          <svg viewBox="0 0 220 140" role="img">
-            <path d="M23 116l43-57 28 32 34-49 68 74z" fill="#eef2ee" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
-            <path d="M128 42l14 24 10-10 15 60" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M72 82h58v35H72z" fill="#fff" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
-            <path d="M66 82l35-25 35 25" fill="#b27457" stroke="#496d55" stroke-width="5" stroke-linejoin="round"/>
-            <path d="M92 117V96h18v21" fill="#f7efe8" stroke="#496d55" stroke-width="4"/>
+          <svg viewBox="0 0 220 140">
+            <path class="icon-soft" d="M30 116l39-56 28 33 39-55 54 78"/>
+            <path class="icon-stroke" d="M74 114V86h58v28"/>
+            <path class="icon-stroke" d="M65 86l38-27 38 27"/>
+            <path class="icon-soft" d="M96 114V97h16v17"/>
+            <path class="icon-stroke" d="M148 114h34"/>
           </svg>
-        </span>
-        <span class="copy">
-          <h2>Berg-Brunch</h2>
-          <p>Oben ankommen, Zeit lassen und den Brunch mit Bergblick auskosten.</p>
         </span>
       </button>
     </section>
 
     <section class="status" id="status" aria-live="polite">
-      <span>Noch nichts ausgew&auml;hlt. Tippe auf ein Symbol und best&auml;tige deine Wahl.</span>
+      <span>Symbol w&auml;hlen und best&auml;tigen.</span>
       <button type="button" id="changeSelection">Auswahl &auml;ndern</button>
     </section>
   </main>
@@ -512,12 +490,12 @@
 
       if (!selectedId) {
         statusBox.classList.remove('has-selection');
-        statusBox.querySelector('span').innerHTML = 'Noch nichts ausgew&auml;hlt. Tippe auf ein Symbol und best&auml;tige deine Wahl.';
+        statusBox.querySelector('span').innerHTML = 'Symbol w&auml;hlen und best&auml;tigen.';
         return;
       }
 
       statusBox.classList.add('has-selection');
-      statusBox.querySelector('span').innerHTML = `Aufgedeckt: <strong>${options[selectedId].title}</strong>. Du kannst die Auswahl weiterhin &auml;ndern.`;
+      statusBox.querySelector('span').innerHTML = `Du bekommst: <strong>${options[selectedId].title}</strong>.`;
     }
 
     function openModal(id) {
