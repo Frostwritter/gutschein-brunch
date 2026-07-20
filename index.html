@@ -279,35 +279,6 @@
       backdrop-filter: blur(4px);
     }
 
-    .confetti-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 50;
-    }
-
-    .confetti-piece {
-      position: absolute;
-      top: -12px;
-      opacity: 0;
-      animation: confetti-fall var(--fall-duration, 2.4s) ease-in forwards;
-      will-change: transform, opacity;
-      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .16));
-    }
-
-    @keyframes confetti-fall {
-      0% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate3d(var(--drift, 0px), 125vh, 0) rotate(var(--spin, 360deg)) scale(.68);
-      }
-    }
-
     .modal-body {
       padding: 20px 18px 18px;
     }
@@ -532,6 +503,7 @@
     </section>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script>
     const options = {
       ship: {
@@ -608,53 +580,67 @@
     }
 
     function burstConfetti(origin) {
-      // Respect reduced-motion preferences.
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (typeof confetti !== 'function') return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      const layer = document.createElement('div');
-      layer.className = 'confetti-layer';
-      layer.setAttribute('aria-hidden', 'true');
-
-      const colors = [
-        '#496d55',
-        '#8db6bd',
-        '#d8a84e',
-        '#b27457',
-        '#f4a8c8',
-        '#fff3b0',
-        '#ffffff',
-        '#e86a68',
-        '#6c8ce6'
-      ];
-      const shapes = ['square', 'circle', 'ribbon'];
+      const colors = ['#496d55', '#8db6bd', '#d8a84e', '#b27457', '#f4a8c8', '#fff3b0', '#e86a68'];
       const rect = origin?.getBoundingClientRect();
-      const originX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
-      const originY = rect ? rect.top + rect.height / 2 : window.innerHeight * 0.72;
-      const pieceCount = 120;
+      const x = rect ? (rect.left + rect.width / 2) / window.innerWidth : 0.5;
+      const y = rect ? (rect.top + rect.height / 2) / window.innerHeight : 0.65;
 
-      for (let index = 0; index < pieceCount; index += 1) {
-        const piece = document.createElement('span');
-        const shape = shapes[index % shapes.length];
-        const size = 8 + Math.random() * 16;
-        const left = originX + (Math.random() - 0.5) * 260;
+      // Big center burst from the Yay button
+      confetti({
+        particleCount: 120,
+        spread: 100,
+        startVelocity: 48,
+        scalar: 1.15,
+        origin: { x, y },
+        colors,
+        zIndex: 40,
+        disableForReducedMotion: true
+      });
 
-        piece.className = 'confetti-piece';
-        piece.style.left = `${left}px`;
-        piece.style.top = `${originY}px`;
-        piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 360}px`);
-        piece.style.setProperty('--spin', `${120 + Math.random() * 780}deg`);
-        piece.style.setProperty('--fall-duration', `${2.2 + Math.random() * 1.9}s`);
-        piece.style.background = colors[index % colors.length];
-        piece.style.width = shape === 'ribbon' ? `${size * 1.8}px` : `${size}px`;
-        piece.style.height = shape === 'ribbon' ? `${size * 0.45}px` : `${size}px`;
-        piece.style.borderRadius = shape === 'circle' ? '999px' : shape === 'ribbon' ? '6px' : '3px';
-        piece.style.animationDelay = `${Math.random() * 0.12}s`;
+      confetti({
+        particleCount: 60,
+        spread: 160,
+        startVelocity: 28,
+        scalar: 0.9,
+        origin: { x, y },
+        colors,
+        zIndex: 40,
+        disableForReducedMotion: true
+      });
 
-        layer.appendChild(piece);
-      }
+      // Fireworks from both sides for ~2.5s
+      const duration = 2500;
+      const end = Date.now() + duration;
 
-      document.body.appendChild(layer);
-      window.setTimeout(() => layer.remove(), 5400);
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          angle: 60,
+          spread: 70,
+          startVelocity: 55,
+          origin: { x: 0, y: 0.65 },
+          colors,
+          zIndex: 40,
+          disableForReducedMotion: true
+        });
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 70,
+          startVelocity: 55,
+          origin: { x: 1, y: 0.65 },
+          colors,
+          zIndex: 40,
+          disableForReducedMotion: true
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
     }
 
     function openModal(id) {
@@ -698,7 +684,7 @@
     function selectActive() {
       if (modalState === 'result') {
         burstConfetti(selectButton);
-        window.setTimeout(closeModal, 650);
+        window.setTimeout(closeModal, 1800);
         return;
       }
 
