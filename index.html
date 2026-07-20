@@ -452,19 +452,19 @@
   <script>
     const options = {
       ship: {
-        title: 'Brunch-Schiff',
-        text: 'Ein ruhiger Start in den Tag auf dem See: reservierter Platz, feiner Brunch und genug Zeit, um die Aussicht zu geniessen.',
-        details: ['Dauer: ca. 2 bis 3 Stunden', 'Ideal bei sonnigem Wetter und ruhiger Stimmung', 'Inklusive Brunch an Bord und gemeinsamer Zeit am Wasser']
+        title: 'Sonntagsbrunch auf dem Vierwaldstättersee',
+        text: 'Ein ruhiger Start in den Tag auf dem See: direkt ab Luzern, mit Buffet, warmen Gerichten, Desserts und Getränken',
+        details: ['Dauer: 10:30 - 13:00', 'Abfahrt und Ankunft in Luzern', 'Anschliessend Flanieren am See oder Verdauungsspaziergang']
       },
       gondola: {
         title: 'Zmorge-Gondel',
-        text: 'Ein besonderes Zmorge in der Gondel, w\u00e4hrend die Landschaft langsam unter euch kleiner wird.',
-        details: ['Dauer: je nach Bahn ca. 60 bis 90 Minuten', 'Gemacht f\u00fcr Aussicht, Kaffee und einen ungew\u00f6hnlichen Start', 'Inklusive Gondelfahrt und Fr\u00fchst\u00fccksbox']
+        text: 'Ein besonderes Zmorge in der Gondel, w\u00e4hrend die Landschaft langsam unter uns kleiner wird.',
+        details: ['Dauer: ab 8:30, ca. 75 - 90 Minuten', 'Abfahrt Talstation Emmeten (ca. 1h ab Luzern)', 'Danach oben aussteigen und Wanderung bis Stockhütte-Klewenalp (ca. 1:30h).']
       },
       mountain: {
-        title: 'Berg-Brunch',
-        text: 'Ein entspannter Brunch im Bergrestaurant mit Blick in die Gipfel und Zeit fuer einen kleinen Spaziergang danach.',
-        details: ['Dauer: offen und gem\u00fctlich planbar', 'Ideal f\u00fcr Bergluft, Aussicht und einen langen Vormittag', 'Inklusive Brunch im Restaurant und gemeinsamer Anreise']
+        title: 'Älplerzmorge auf dem Mostelberg',
+        text: 'Mit der weltweit ersten Drehgondel geht es von Sattel zum Berggasthaus Mostelberg. Dort gibt es ein regionales Buffet mit Rösti, Eiern, Alpkäse, Aufschnitt, Zopf und Kuchen.',
+        details: ['Dauer: 9:00 - 11:00', 'Abfahrt Talstation Sattel (ca. 1h ab Luzern)', 'Nachher beliebiges Programm auf dem Berg (Wandern, Rodeln, etc.)']
       }
     };
 
@@ -501,11 +501,11 @@
     function openModal(id) {
       activeId = id;
       modalState = 'confirm';
-      modalTitle.textContent = 'Dieses Symbol w\u00e4hlen?';
-      modalText.textContent = 'Wenn du best\u00e4tigst, wird aufgedeckt, welches Erlebnis hinter diesem Symbol steckt.';
+      modalTitle.textContent = 'Sicher?';
+      modalText.textContent = 'Die Auswahl ist endgültig, wird direkt gebucht und vom Konto abgezogen (natürlich nicht wirklich)';
       modalDetails.replaceChildren();
-      selectButton.textContent = 'Symbol best\u00e4tigen';
-      keepLookingButton.textContent = 'Anderes Symbol ansehen';
+      selectButton.textContent = 'Auswahl best\u00e4tigen';
+      keepLookingButton.textContent = 'Andere Optionen ansehen';
       backdrop.classList.add('open');
       document.body.style.overflow = 'hidden';
       closeButton.focus();
@@ -521,7 +521,7 @@
         item.textContent = detail;
         return item;
       }));
-      selectButton.textContent = 'Schliessen';
+      selectButton.textContent = 'Yay!';
       keepLookingButton.textContent = 'Auswahl \u00e4ndern';
     }
 
