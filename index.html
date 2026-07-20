@@ -284,7 +284,7 @@
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 20;
+      z-index: 50;
     }
 
     .confetti-piece {
@@ -292,17 +292,19 @@
       top: -12px;
       opacity: 0;
       animation: confetti-fall var(--fall-duration, 2.4s) ease-in forwards;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .16));
     }
 
     @keyframes confetti-fall {
       0% {
         opacity: 1;
-        transform: translate3d(0, 0, 0) rotate(0deg);
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
       }
 
       100% {
         opacity: 0;
-        transform: translate3d(var(--drift, 0px), 105vh, 0) rotate(var(--spin, 360deg));
+        transform: translate3d(var(--drift, 0px), 125vh, 0) rotate(var(--spin, 360deg)) scale(.68);
       }
     }
 
@@ -434,11 +436,21 @@
       <button class="choice" type="button" data-id="ship" aria-label="Symbol 1 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140">
-            <path class="icon-soft" d="M26 104c18 8 34 8 52 0s34-8 52 0 34 8 52 0"/>
-            <path class="icon-stroke" d="M54 73h112l-18 31H76z"/>
-            <path class="icon-stroke" d="M78 49h58l19 24H64z"/>
-            <path class="icon-soft" d="M91 61h12m21 0h12"/>
-            <path class="icon-stroke" d="M109 30v19"/>
+            <!-- Wellen -->
+            <path class="icon-soft" d="M22 118c14 7 28 7 42 0s28-7 42 0 28 7 42 0 28-7 42 0"/>
+            <!-- Rumpf -->
+            <path class="icon-stroke" d="M38 92h132l-14 22H52z"/>
+            <!-- Deck / Kabine -->
+            <path class="icon-stroke" d="M62 68h84v24H62z"/>
+            <path class="icon-stroke" d="M78 50h52v18H78z"/>
+            <!-- Fenster -->
+            <path class="icon-soft" d="M74 78h12M96 78h12M118 78h12"/>
+            <path class="icon-soft" d="M90 58h10M110 58h10"/>
+            <!-- Schornstein + Rauch -->
+            <path class="icon-stroke" d="M128 32h16v18"/>
+            <path class="icon-soft" d="M138 28c6-8 14-8 18-2"/>
+            <!-- Bugmast -->
+            <path class="icon-stroke" d="M62 50v18"/>
           </svg>
         </span>
       </button>
@@ -453,11 +465,18 @@
       <button class="choice" type="button" data-id="gondola" aria-label="Symbol 2 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140">
-            <path class="icon-stroke" d="M30 34h160"/>
-            <path class="icon-stroke" d="M110 34v25"/>
-            <rect x="66" y="58" width="88" height="56" rx="10" class="icon-stroke"/>
-            <path class="icon-soft" d="M83 78h54M86 95h48"/>
-            <path class="icon-soft" d="M50 119l31-34 24 26 29-42 37 50"/>
+            <!-- Seil -->
+            <path class="icon-stroke" d="M24 36h172"/>
+            <!-- Aufhängung -->
+            <path class="icon-stroke" d="M110 36v22"/>
+            <path class="icon-stroke" d="M96 58h28"/>
+            <!-- Gondel-Kabine -->
+            <path class="icon-stroke" d="M72 62h76v48a12 12 0 0 1-12 12H84a12 12 0 0 1-12-12z"/>
+            <!-- Fensterband -->
+            <path class="icon-soft" d="M84 78h52v16H84z"/>
+            <path class="icon-soft" d="M101 78v16M118 78v16"/>
+            <!-- Berge darunter -->
+            <path class="icon-soft" d="M36 128l28-34 22 20 26-38 34 32 20 20"/>
           </svg>
         </span>
       </button>
@@ -472,11 +491,19 @@
       <button class="choice" type="button" data-id="mountain" aria-label="Symbol 3 ausw&auml;hlen" aria-pressed="false">
         <span class="art" aria-hidden="true">
           <svg viewBox="0 0 220 140">
-            <path class="icon-soft" d="M30 116l39-56 28 33 39-55 54 78"/>
-            <path class="icon-stroke" d="M74 114V86h58v28"/>
-            <path class="icon-stroke" d="M65 86l38-27 38 27"/>
-            <path class="icon-soft" d="M96 114V97h16v17"/>
-            <path class="icon-stroke" d="M148 114h34"/>
+            <!-- Bergkette -->
+            <path class="icon-soft" d="M18 118l42-58 26 34 36-52 48 50 32 26"/>
+            <!-- Sonne -->
+            <circle class="icon-soft" cx="168" cy="34" r="12"/>
+            <!-- Berghütte -->
+            <path class="icon-stroke" d="M70 118V88h64v30"/>
+            <path class="icon-stroke" d="M60 88l42-30 42 30"/>
+            <!-- Tür + Fenster -->
+            <path class="icon-soft" d="M96 118V100h14v18"/>
+            <path class="icon-soft" d="M80 98h12v10H80z"/>
+            <path class="icon-soft" d="M112 98h12v10h-12z"/>
+            <!-- Kamin -->
+            <path class="icon-stroke" d="M118 70h12v18"/>
           </svg>
         </span>
       </button>
@@ -581,40 +608,53 @@
     }
 
     function burstConfetti(origin) {
+      // Respect reduced-motion preferences.
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
       const layer = document.createElement('div');
       layer.className = 'confetti-layer';
       layer.setAttribute('aria-hidden', 'true');
 
-      const colors = ['#496d55', '#8db6bd', '#d8a84e', '#b27457', '#f4a8c8', '#fff3b0', '#ffffff'];
+      const colors = [
+        '#496d55',
+        '#8db6bd',
+        '#d8a84e',
+        '#b27457',
+        '#f4a8c8',
+        '#fff3b0',
+        '#ffffff',
+        '#e86a68',
+        '#6c8ce6'
+      ];
       const shapes = ['square', 'circle', 'ribbon'];
       const rect = origin?.getBoundingClientRect();
       const originX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
       const originY = rect ? rect.top + rect.height / 2 : window.innerHeight * 0.72;
-      const pieceCount = 42;
+      const pieceCount = 120;
 
       for (let index = 0; index < pieceCount; index += 1) {
         const piece = document.createElement('span');
         const shape = shapes[index % shapes.length];
-        const size = 6 + Math.random() * 7;
-        const left = originX + (Math.random() - 0.5) * 120;
+        const size = 8 + Math.random() * 16;
+        const left = originX + (Math.random() - 0.5) * 260;
 
         piece.className = 'confetti-piece';
         piece.style.left = `${left}px`;
         piece.style.top = `${originY}px`;
-        piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 180}px`);
-        piece.style.setProperty('--spin', `${180 + Math.random() * 540}deg`);
-        piece.style.setProperty('--fall-duration', `${1.8 + Math.random() * 1.4}s`);
+        piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 360}px`);
+        piece.style.setProperty('--spin', `${120 + Math.random() * 780}deg`);
+        piece.style.setProperty('--fall-duration', `${2.2 + Math.random() * 1.9}s`);
         piece.style.background = colors[index % colors.length];
         piece.style.width = shape === 'ribbon' ? `${size * 1.8}px` : `${size}px`;
         piece.style.height = shape === 'ribbon' ? `${size * 0.45}px` : `${size}px`;
-        piece.style.borderRadius = shape === 'circle' ? '999px' : '2px';
-        piece.style.animationDelay = `${Math.random() * 0.18}s`;
+        piece.style.borderRadius = shape === 'circle' ? '999px' : shape === 'ribbon' ? '6px' : '3px';
+        piece.style.animationDelay = `${Math.random() * 0.12}s`;
 
         layer.appendChild(piece);
       }
 
       document.body.appendChild(layer);
-      window.setTimeout(() => layer.remove(), 3200);
+      window.setTimeout(() => layer.remove(), 5400);
     }
 
     function openModal(id) {
@@ -658,7 +698,7 @@
     function selectActive() {
       if (modalState === 'result') {
         burstConfetti(selectButton);
-        window.setTimeout(closeModal, 420);
+        window.setTimeout(closeModal, 650);
         return;
       }
 
