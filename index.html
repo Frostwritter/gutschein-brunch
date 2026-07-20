@@ -221,13 +221,35 @@
     }
 
     .modal-header {
+      position: relative;
       min-height: 160px;
       padding: 18px;
-      background: linear-gradient(135deg, rgba(141, 182, 189, .26), rgba(216, 168, 78, .18));
+      background-color: #eef4ef;
+      background-image: linear-gradient(135deg, rgba(37, 48, 43, .52), rgba(73, 109, 85, .38));
+      background-size: cover;
+      background-position: center;
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 12px;
       align-items: start;
+      overflow: hidden;
+    }
+
+    .modal-header.is-link {
+      cursor: pointer;
+    }
+
+    .modal-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(250, 247, 240, .18) 0%, rgba(37, 48, 43, .08) 100%);
+      pointer-events: none;
+    }
+
+    .modal-header > * {
+      position: relative;
+      z-index: 1;
     }
 
     .modal-header h3 {
@@ -236,6 +258,12 @@
       font-size: 2rem;
       font-weight: 500;
       letter-spacing: 0;
+      color: var(--ink);
+    }
+
+    .modal-header.is-result h3 {
+      color: #fff;
+      text-shadow: 0 2px 14px rgba(37, 48, 43, .45);
     }
 
     .close {
@@ -248,6 +276,34 @@
       cursor: pointer;
       font-size: 1.55rem;
       line-height: 1;
+      backdrop-filter: blur(4px);
+    }
+
+    .confetti-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      top: -12px;
+      opacity: 0;
+      animation: confetti-fall var(--fall-duration, 2.4s) ease-in forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--drift, 0px), 105vh, 0) rotate(var(--spin, 360deg));
+      }
     }
 
     .modal-body {
@@ -434,7 +490,7 @@
 
   <div class="backdrop" id="backdrop" role="presentation">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
-      <div class="modal-header">
+      <div class="modal-header" id="modalHeader">
         <h3 id="modalTitle"></h3>
         <button class="close" type="button" id="closeModal" aria-label="Fenster schliessen">&times;</button>
       </div>
@@ -453,16 +509,22 @@
     const options = {
       ship: {
         title: 'Sonntagsbrunch auf dem Vierwaldstättersee',
+        image: 'images/ship.jpg',
+        url: 'https://webshop.lakelucerne.ch/de/stories/brunch-schiff',
         text: 'Ein ruhiger Start in den Tag auf dem See: direkt ab Luzern, mit Buffet, warmen Gerichten, Desserts und Getränken',
         details: ['Dauer: 10:30 - 13:00', 'Abfahrt und Ankunft in Luzern', 'Anschliessend Flanieren am See oder Verdauungsspaziergang']
       },
       gondola: {
         title: 'Zmorge-Gondel',
+        image: 'images/gondola.jpg',
+        url: 'https://shop.klewenalp.ch/products/zmorge-gondel',
         text: 'Ein besonderes Zmorge in der Gondel, w\u00e4hrend die Landschaft langsam unter uns kleiner wird.',
         details: ['Dauer: ab 8:30, ca. 75 - 90 Minuten', 'Abfahrt Talstation Emmeten (ca. 1h ab Luzern)', 'Danach oben aussteigen und Wanderung bis Stockhütte-Klewenalp (ca. 1:30h).']
       },
       mountain: {
         title: 'Älplerzmorge auf dem Mostelberg',
+        image: 'images/mountain.jpg',
+        url: 'https://www.sattel-hochstuckli.ch/de/erlebnisse/aelplerzmorge.html',
         text: 'Mit der weltweit ersten Drehgondel geht es von Sattel zum Berggasthaus Mostelberg. Dort gibt es ein regionales Buffet mit Rösti, Eiern, Alpkäse, Aufschnitt, Zopf und Kuchen.',
         details: ['Dauer: 9:00 - 11:00', 'Abfahrt Talstation Sattel (ca. 1h ab Luzern)', 'Nachher beliebiges Programm auf dem Berg (Wandern, Rodeln, etc.)']
       }
@@ -470,6 +532,7 @@
 
     const cards = [...document.querySelectorAll('.choice')];
     const backdrop = document.querySelector('#backdrop');
+    const modalHeader = document.querySelector('#modalHeader');
     const modalTitle = document.querySelector('#modalTitle');
     const modalText = document.querySelector('#modalText');
     const modalDetails = document.querySelector('#modalDetails');
@@ -498,9 +561,66 @@
       statusBox.querySelector('span').innerHTML = `Du bekommst: <strong>${options[selectedId].title}</strong>.`;
     }
 
+    function setModalHeaderImage(option) {
+      const layers = [
+        'linear-gradient(135deg, rgba(37, 48, 43, .52), rgba(73, 109, 85, .38))'
+      ];
+
+      if (option?.image) {
+        layers.push(`url("${option.image}")`);
+      }
+
+      modalHeader.style.backgroundImage = layers.join(', ');
+    }
+
+    function resetModalHeader() {
+      modalHeader.classList.remove('is-result');
+      modalHeader.classList.remove('is-link');
+      modalHeader.style.backgroundImage = 'linear-gradient(135deg, rgba(141, 182, 189, .26), rgba(216, 168, 78, .18))';
+      modalHeader.style.backgroundColor = '';
+    }
+
+    function burstConfetti(origin) {
+      const layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      layer.setAttribute('aria-hidden', 'true');
+
+      const colors = ['#496d55', '#8db6bd', '#d8a84e', '#b27457', '#f4a8c8', '#fff3b0', '#ffffff'];
+      const shapes = ['square', 'circle', 'ribbon'];
+      const rect = origin?.getBoundingClientRect();
+      const originX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+      const originY = rect ? rect.top + rect.height / 2 : window.innerHeight * 0.72;
+      const pieceCount = 42;
+
+      for (let index = 0; index < pieceCount; index += 1) {
+        const piece = document.createElement('span');
+        const shape = shapes[index % shapes.length];
+        const size = 6 + Math.random() * 7;
+        const left = originX + (Math.random() - 0.5) * 120;
+
+        piece.className = 'confetti-piece';
+        piece.style.left = `${left}px`;
+        piece.style.top = `${originY}px`;
+        piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 180}px`);
+        piece.style.setProperty('--spin', `${180 + Math.random() * 540}deg`);
+        piece.style.setProperty('--fall-duration', `${1.8 + Math.random() * 1.4}s`);
+        piece.style.background = colors[index % colors.length];
+        piece.style.width = shape === 'ribbon' ? `${size * 1.8}px` : `${size}px`;
+        piece.style.height = shape === 'ribbon' ? `${size * 0.45}px` : `${size}px`;
+        piece.style.borderRadius = shape === 'circle' ? '999px' : '2px';
+        piece.style.animationDelay = `${Math.random() * 0.18}s`;
+
+        layer.appendChild(piece);
+      }
+
+      document.body.appendChild(layer);
+      window.setTimeout(() => layer.remove(), 3200);
+    }
+
     function openModal(id) {
       activeId = id;
       modalState = 'confirm';
+      resetModalHeader();
       modalTitle.textContent = 'Sicher?';
       modalText.textContent = 'Die Auswahl ist endgültig, wird direkt gebucht und vom Konto abgezogen (natürlich nicht wirklich)';
       modalDetails.replaceChildren();
@@ -514,6 +634,9 @@
     function revealActive() {
       const option = options[activeId];
       modalState = 'result';
+      modalHeader.classList.add('is-result');
+      modalHeader.classList.toggle('is-link', Boolean(option.url));
+      setModalHeaderImage(option);
       modalTitle.textContent = option.title;
       modalText.textContent = option.text;
       modalDetails.replaceChildren(...option.details.map((detail) => {
@@ -534,7 +657,8 @@
 
     function selectActive() {
       if (modalState === 'result') {
-        closeModal();
+        burstConfetti(selectButton);
+        window.setTimeout(closeModal, 420);
         return;
       }
 
@@ -564,6 +688,15 @@
 
     cards.forEach((card) => {
       card.addEventListener('click', () => openModal(card.dataset.id));
+    });
+
+    modalHeader.addEventListener('click', () => {
+      if (modalState !== 'result') return;
+
+      const option = options[activeId];
+      if (!option?.url) return;
+
+      window.location.href = option.url;
     });
 
     selectButton.addEventListener('click', selectActive);
